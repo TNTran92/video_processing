@@ -1,5 +1,5 @@
 # Video Processing API — Design Spec
-hi
+
 Date: 2026-10-06
 Status: approved (per section), pending final review
 Path: architectural (new project)
