@@ -1,0 +1,71 @@
+# video-processing-api — configuration
+# Copy to config.yaml (gitignored) and set APP_CONFIG accordingly.
+# JSON files are also accepted by the same loader.
+# ${ENV_VAR} references resolve against the process environment.
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  max_queue_size: 16
+  max_parallel_jobs: 1        # GPU-bound: default 1 concurrent job
+
+paths:
+  host_prefix: "/data/videos"          # what callers send
+  container_prefix: "/srv/videos"      # what the API opens (bind-mount target)
+  allowed_extensions: [".mp4", ".mov", ".avi"]
+  max_file_size_mb: 2048
+
+jobs:
+  ttl_seconds: 86400                 # completed/failed jobs kept this long
+  idempotency_window_seconds: 600
+  max_runtime_seconds: 900           # per-job soft budget
+
+frames:
+  fps_sample_rate: 1
+  max_frames: 900                    # long videos are down-sampled, not failed
+  frame_format: "jpg"
+
+models:
+  base_url: "http://host.docker.internal:11434"
+  video_model: "minicpm-v4.5:8b"
+  summary_model: "llama3.1:8b"       # TODO: pick the model actually pulled
+
+llm:
+  # api_key: "${OLLAMA_API_KEY}"    # only for hosted providers; local Ollama: none
+  timeout_seconds: 300
+  max_retries: 2
+  retry_backoff_seconds: 3
+  temperature_video: 0.5
+  temperature_summary: 0.2
+  max_tokens_video: 4096
+  max_tokens_summary: 1500
+
+prompting:
+  video_system: >-
+    You are a video understanding model. You receive a video clip as a sequence
+    of sampled frames. Describe what happens in chronological order, using
+    only what is visible.
+  video_user_suffix: >-
+     This is a video clip. Describe the actions in chronological order.
+  summary_system: >-
+    You summarize video descriptions into a compact, structured result.
+    Return JSON only.
+  summary_user: >-
+    Given the video description below, produce the final JSON.
+    {description}
+
+output_schema:
+  fields:
+    title: {type: "string", max_length: 120}
+    summary: {type: "string", max_length: 600}
+    actions: {type: "array", item: "string", max_items: 25}
+    subjects: {type: "array", item: "string", max_items: 20}
+    confidence_note: {type: "string", max_length: 200, optional: true}
+
+scratch:
+  root: "/tmp/video_processing"
+  startup_sweep: true
+
+logging:
+  level: "INFO"
+  format: "json"                     # docker logs | jq works out of the box

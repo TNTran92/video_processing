@@ -241,8 +241,8 @@ llm:
   max_tokens_summary: 1500
 
 prompting:
-  video_system: "You watch video clips as a sequence of frames...\nReturn JSON only."
-  video_user_suffix: " This is a video clip. Describe the actions in chronological order.\nRespond ONLY with JSON matching the schema."
+  video_system: "You are a video understanding model. You receive a video clip as a sequence of sampled frames. Describe what happens in chronological order, using only what is visible."
+  video_user_suffix: " This is a video clip. Describe the actions in chronological order."
   summary_system: "You summarize video descriptions. Return JSON only."
   summary_user: "Given the video description below, produce the final JSON.\n{description}"
 
@@ -302,7 +302,10 @@ never the image.
    `max_retries` times with exponential backoff; structural failures
    (model returned non-JSON) retry the *same* budget with a re-prompt suffix
    ("Your last reply was not valid JSON. Respond only with JSON matching the
-   schema.").
+   schema."). The video-model step expects a **plain-text chronological
+   description, not JSON**: `video_llm_invalid_output` fires when its reply
+   is empty or has fewer than 10 non-whitespace characters after one
+   re-prompt. The JSON re-prompt applies to the summary step only.
 5. Cleanup is contractual: pipeline `finally` removes
    `<scratch_root>/<job_id>/`. A `startup` hook sweeps
    `<scratch_root>/*` (safe because every scratch path is namespaced by job

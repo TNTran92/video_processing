@@ -1,0 +1,37 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "ollama": {
+      "options": {
+        //"baseURL": "http://localhost:11434/v1"
+        "baseURL": "http://100.115.107.83/v1"
+      }
+    }
+  },
+  "agent": {
+    "planner": {
+      "mode": "primary",
+      "model": "ollama/qwen3.8:27b-q4_K_M ",
+      "prompt": "You are an architectural planner. Break down the user prompt into small, concrete steps. Save your step-by-step implementation plan strictly to .context/PLAN.md.",
+      "permission": { "edit": "allow", "bash": "deny" }
+    },
+    "developer": {
+      "mode": "primary",
+      "model": "ollama/qwen3.8:27b-q4_K_M ",
+      "prompt": "You are a software developer. You MUST use your file editing tools (`write_file` or `edit`) to physically write code onto the disk. Do NOT just print code in Markdown blocks.",
+      "permission": { "edit": "allow", "bash": "allow" }
+    },
+    "tester": {
+      "mode": "primary",
+      "model": "ollama/qwen3.8:27b-q4_K_M ",
+      "prompt": "You are a unit test writer. Look at the code, functions, and classes. Write unit tests for them using the appropriate testing framework. Save your tests to .context/TESTS.md.",
+      "permission": { "edit": "deny", "bash": "allow" }
+    },
+    "reviewer": {
+      "mode": "primary",
+      "model": "ollama/qwen3.8:27b-q4_K_M ",
+      "prompt": "You are a code reviewer. Run `git diff` using bash tools to review recent changes. Look for bugs, missing edge cases, or broken logic. Save your findings to .context/REVIEW.md.",
+      "permission": { "edit": "deny", "bash": "allow" }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+services:
+  api:
+    build: .
+    container_name: video-processing-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.yaml:/config.yaml:ro
+      - /data/videos:/srv/videos:ro        # host path from config paths.host_prefix
+      - scratch:/tmp/video_processing
+    # Ollama is external by design (spec decision 3); reach it per
+    # models.base_url in config.yaml (host.docker.internal needs the
+    # extra_hosts entry below on Docker Desktop; irrelevant on Linux
+    # when Ollama runs on the host LAN).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - APP_CONFIG=/config.yaml
+
+volumes:
+  scratch:
